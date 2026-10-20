@@ -5,6 +5,7 @@
 #include <atomic>
 #include "aurora_events.h"
 #include "hle/gx/gx_dynamic_aspect.h"
+#include "runtime_config.h"
 
 #include <dolphin/vi.h>
 
@@ -18,7 +19,6 @@ bool g_widescreenConfigured = false;
 bool g_widescreenSetting = false;
 bool g_forceAspect169 = false;
 std::atomic_bool g_requestedForceAspect169{false};
-std::atomic_bool g_requestedAdvertisedAspect169{true};
 bool g_policyDirty = false;
 uint32_t g_lastEggWidth43 = 0;
 uint32_t g_lastEggWidth169 = 0;
@@ -131,8 +131,11 @@ void WriteEggScreenRecord(uint32_t recordAddr, uint32_t width) {
 
 void ApplyEggScreenRecords(uint32_t surfaceWidth, uint32_t surfaceHeight) {
     using namespace MkwDynamicAspect;
+    const bool advertisedAspect169 = RuntimeConfigFile::AdvertisedAspectRatio169(true);
+    const float referenceAspect = advertisedAspect169 ? kPresentationAspect169 : 4.0f / 3.0f;
     const uint32_t width43 =
-        g_widescreenConfigured ? EggRecordWidth(kEggRecordWidth43, surfaceWidth, surfaceHeight)
+        g_widescreenConfigured ? EggRecordWidth(kEggRecordWidth43, surfaceWidth, surfaceHeight,
+                                                referenceAspect)
                                : kEggRecordWidth43;
     const uint32_t width169 =
         g_widescreenConfigured ? EggRecordWidth(kEggRecordWidth169, surfaceWidth, surfaceHeight)
@@ -142,7 +145,7 @@ void ApplyEggScreenRecords(uint32_t surfaceWidth, uint32_t surfaceHeight) {
     Memory::WriteFloat32(kEggScreenProjScaleX, 1.0f);
     Memory::WriteFloat32(kEggScreenProjScaleY,
                          g_widescreenConfigured
-                             ? VerticalExpansion(surfaceWidth, surfaceHeight)
+                             ? VerticalExpansion(surfaceWidth, surfaceHeight, referenceAspect)
                              : 1.0f);
     AssertOffscreenScreenBypass();
     if (width43 == g_lastEggWidth43 && width169 == g_lastEggWidth169) {
@@ -175,12 +178,12 @@ void AssertMkwOffscreenScreenBypass() {
 void UpdateMkwDynamicAspectSurface(uint32_t surfaceWidth, uint32_t surfaceHeight) {
     const bool requestedForceAspect169 = g_requestedForceAspect169.load(std::memory_order_acquire);
     const bool requestedAdvertisedAspect169 =
-        g_requestedAdvertisedAspect169.load(std::memory_order_acquire);
+        RuntimeConfigFile::AdvertisedAspectRatio169(g_widescreenSetting);
     if (g_forceAspect169 != requestedForceAspect169 ||
         g_widescreenSetting != requestedAdvertisedAspect169) {
         g_forceAspect169 = requestedForceAspect169;
         g_widescreenSetting = requestedAdvertisedAspect169;
-        g_widescreenConfigured = g_widescreenSetting || g_forceAspect169;
+        g_widescreenConfigured = true;
         g_dynamicAspectRatioEnabled = g_widescreenConfigured;
         g_policyDirty = true;
     }
@@ -209,20 +212,15 @@ void SetMkwForceAspect169(bool enabled) {
     g_requestedForceAspect169.store(enabled, std::memory_order_release);
 }
 
-void SetMkwAdvertisedAspect169(bool enabled) {
-    g_requestedAdvertisedAspect169.store(enabled, std::memory_order_release);
-}
-
 bool MkwForceAspect169Requested() {
     return g_requestedForceAspect169.load(std::memory_order_acquire);
 }
 
 void ConfigureMkwDynamicAspect(bool widescreen, bool forceAspect169, uint32_t surfaceWidth, uint32_t surfaceHeight) {
     g_widescreenSetting = widescreen;
-    g_widescreenConfigured = widescreen || forceAspect169;
+    g_widescreenConfigured = true;
     g_forceAspect169 = forceAspect169;
     g_requestedForceAspect169.store(forceAspect169, std::memory_order_relaxed);
-    g_requestedAdvertisedAspect169.store(widescreen, std::memory_order_relaxed);
     g_dynamicAspectRatioEnabled = g_widescreenConfigured;
     g_lastEggWidth43 = 0;
     g_lastEggWidth169 = 0;

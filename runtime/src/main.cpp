@@ -1463,9 +1463,9 @@ int RuntimeMain(int argc, char** argv) {
                   << " window=" << auroraInfo.windowSize.width << "x" << auroraInfo.windowSize.height
                   << " native=" << auroraInfo.windowSize.native_fb_width << "x"
                   << auroraInfo.windowSize.native_fb_height
-                  << " viewportPolicy=" << (forceAspect169 ? "16:9" : (advertisedAspect169 ? "stretch" : "fit"))
+                  << " viewportPolicy=" << (forceAspect169 ? "16:9" : (configWidescreen ? "stretch" : "fit"))
                   << " presentAspect="
-                  << (forceAspect169 ? "16:9" : (advertisedAspect169 ? "surface (dynamic EGG canvas)" : "4:3"))
+                  << (forceAspect169 ? "16:9" : (configWidescreen ? "surface (dynamic EGG canvas)" : "4:3"))
                   << std::endl;
         g_auroraInitialized.store(true, std::memory_order_release);
 
