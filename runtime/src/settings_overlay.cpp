@@ -111,6 +111,7 @@ bool g_skipUnreadyPipelines = RuntimeConfigFile::SkipUnreadyPipelines(true);
 bool g_disableCopyFilter = RuntimeConfigFile::DisableCopyFilter(true);
 bool g_showFps = RuntimeConfigFile::ShowFps(true);
 bool g_forceAspect169 = RuntimeConfigFile::ForceAspect169Enabled();
+bool g_advertisedAspect169 = RuntimeConfigFile::AdvertisedAspectRatio169(true);
 #if defined(__APPLE__)
 bool g_metalFxSpatialUpscaling = RuntimeConfigFile::MetalFxSpatialUpscaling(false);
 #endif
@@ -1041,6 +1042,18 @@ void DrawAudioSettings() {
 
 void DrawGraphicsSettings() {
     g_displayMode = static_cast<int>(aurora_get_display_mode());
+    const char* advertisedAspectLabel = g_advertisedAspect169 ? "16:9" : "4:3";
+    if (ImGui::BeginCombo("Advertised aspect ratio", advertisedAspectLabel)) {
+        if (ImGui::Selectable("16:9", g_advertisedAspect169)) {
+            g_advertisedAspect169 = true;
+            RuntimeConfigFile::SetAdvertisedAspectRatio169(true);
+        }
+        if (ImGui::Selectable("4:3", !g_advertisedAspect169)) {
+            g_advertisedAspect169 = false;
+            RuntimeConfigFile::SetAdvertisedAspectRatio169(false);
+        }
+        ImGui::EndCombo();
+    }
     if (ImGui::Checkbox("Force 16:9", &g_forceAspect169)) {
         SetMkwForceAspect169(g_forceAspect169);
         RuntimeConfigFile::SetForceAspect169(g_forceAspect169);
