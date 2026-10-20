@@ -18,6 +18,7 @@ bool g_widescreenConfigured = false;
 bool g_widescreenSetting = false;
 bool g_forceAspect169 = false;
 std::atomic_bool g_requestedForceAspect169{false};
+std::atomic_bool g_requestedAdvertisedAspect169{true};
 bool g_policyDirty = false;
 uint32_t g_lastEggWidth43 = 0;
 uint32_t g_lastEggWidth169 = 0;
@@ -173,8 +174,12 @@ void AssertMkwOffscreenScreenBypass() {
 
 void UpdateMkwDynamicAspectSurface(uint32_t surfaceWidth, uint32_t surfaceHeight) {
     const bool requestedForceAspect169 = g_requestedForceAspect169.load(std::memory_order_acquire);
-    if (g_forceAspect169 != requestedForceAspect169) {
+    const bool requestedAdvertisedAspect169 =
+        g_requestedAdvertisedAspect169.load(std::memory_order_acquire);
+    if (g_forceAspect169 != requestedForceAspect169 ||
+        g_widescreenSetting != requestedAdvertisedAspect169) {
         g_forceAspect169 = requestedForceAspect169;
+        g_widescreenSetting = requestedAdvertisedAspect169;
         g_widescreenConfigured = g_widescreenSetting || g_forceAspect169;
         g_dynamicAspectRatioEnabled = g_widescreenConfigured;
         g_policyDirty = true;
@@ -204,6 +209,10 @@ void SetMkwForceAspect169(bool enabled) {
     g_requestedForceAspect169.store(enabled, std::memory_order_release);
 }
 
+void SetMkwAdvertisedAspect169(bool enabled) {
+    g_requestedAdvertisedAspect169.store(enabled, std::memory_order_release);
+}
+
 bool MkwForceAspect169Requested() {
     return g_requestedForceAspect169.load(std::memory_order_acquire);
 }
@@ -213,6 +222,7 @@ void ConfigureMkwDynamicAspect(bool widescreen, bool forceAspect169, uint32_t su
     g_widescreenConfigured = widescreen || forceAspect169;
     g_forceAspect169 = forceAspect169;
     g_requestedForceAspect169.store(forceAspect169, std::memory_order_relaxed);
+    g_requestedAdvertisedAspect169.store(widescreen, std::memory_order_relaxed);
     g_dynamicAspectRatioEnabled = g_widescreenConfigured;
     g_lastEggWidth43 = 0;
     g_lastEggWidth169 = 0;

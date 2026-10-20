@@ -1046,10 +1046,12 @@ void DrawGraphicsSettings() {
     if (ImGui::BeginCombo("Advertised aspect ratio", advertisedAspectLabel)) {
         if (ImGui::Selectable("16:9", g_advertisedAspect169)) {
             g_advertisedAspect169 = true;
+            SetMkwAdvertisedAspect169(true);
             RuntimeConfigFile::SetAdvertisedAspectRatio169(true);
         }
         if (ImGui::Selectable("4:3", !g_advertisedAspect169)) {
             g_advertisedAspect169 = false;
+            SetMkwAdvertisedAspect169(false);
             RuntimeConfigFile::SetAdvertisedAspectRatio169(false);
         }
         ImGui::EndCombo();
