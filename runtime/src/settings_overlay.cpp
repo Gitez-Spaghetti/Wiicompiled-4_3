@@ -1043,7 +1043,7 @@ void DrawAudioSettings() {
 void DrawGraphicsSettings() {
     g_displayMode = static_cast<int>(aurora_get_display_mode());
     const char* advertisedAspectLabel = g_advertisedAspect169 ? "16:9" : "4:3";
-    if (ImGui::BeginCombo("Advertised aspect ratio", advertisedAspectLabel)) {
+    if (ImGui::BeginCombo("Advertised aspect ratio (restart required)", advertisedAspectLabel)) {
         if (ImGui::Selectable("16:9", g_advertisedAspect169)) {
             g_advertisedAspect169 = true;
             RuntimeConfigFile::SetAdvertisedAspectRatio169(true);
@@ -1055,7 +1055,6 @@ void DrawGraphicsSettings() {
         ImGui::EndCombo();
     }
     if (ImGui::Checkbox("Force 16:9", &g_forceAspect169)) {
-        SetMkwForceAspect169(g_forceAspect169);
         RuntimeConfigFile::SetForceAspect169(g_forceAspect169);
     }
     ImGui::TextDisabled("Keep a 16:9 image with black bars when the window has another shape.");

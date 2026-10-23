@@ -792,9 +792,7 @@ inline bool AdvertisedAspectRatio169(bool fallback = false) {
 }
 
 inline bool SetAdvertisedAspectRatio169(bool value) {
-    Mutable().advertisedAspectRatio = value ? "16:9" : "4:3";
-    return WriteSetting("video", "advertised_aspect_ratio",
-                        FormatString(*Mutable().advertisedAspectRatio));
+    return WriteSetting("video", "advertised_aspect_ratio", value ? "\"16:9\"" : "\"4:3\"");
 }
 
 inline bool ForceAspect169Enabled(bool fallback = false) {
@@ -802,7 +800,6 @@ inline bool ForceAspect169Enabled(bool fallback = false) {
 }
 
 inline bool SetForceAspect169(bool value) {
-    Mutable().forceAspect169 = value;
     return WriteSetting("video", "force_16_9", value ? "true" : "false");
 }
 
