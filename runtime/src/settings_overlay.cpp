@@ -1054,10 +1054,11 @@ void DrawGraphicsSettings() {
         }
         ImGui::EndCombo();
     }
-    if (ImGui::Checkbox("Force 16:9", &g_forceAspect169)) {
+    if (ImGui::Checkbox("Force aspect ratio", &g_forceAspect169)) {
+        SetMkwForceAspect(g_forceAspect169);
         RuntimeConfigFile::SetForceAspect169(g_forceAspect169);
     }
-    ImGui::TextDisabled("Keep a 16:9 image with black bars when the window has another shape.");
+    ImGui::TextDisabled("Keep the current aspect ratio with black bars when the window has another shape.");
     ImGui::Separator();
     struct EffectFlag {
         const char* label;
