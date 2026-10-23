@@ -112,7 +112,7 @@ bool g_skipUnreadyPipelines = RuntimeConfigFile::SkipUnreadyPipelines(true);
 bool g_vsync = RuntimeConfigFile::Vsync();
 bool g_disableCopyFilter = RuntimeConfigFile::DisableCopyFilter(true);
 bool g_showFps = RuntimeConfigFile::ShowFps(true);
-bool g_forceAspect169 = RuntimeConfigFile::ForceAspect169Enabled();
+bool g_forceAspect = RuntimeConfigFile::ForceAspectEnabled();
 bool g_advertisedAspect169 = RuntimeConfigFile::AdvertisedAspectRatio169(true);
 #if defined(__APPLE__)
 bool g_metalFxSpatialUpscaling = RuntimeConfigFile::MetalFxSpatialUpscaling(false);
@@ -1082,9 +1082,9 @@ void DrawGraphicsSettings() {
         }
         ImGui::EndCombo();
     }
-    if (ImGui::Checkbox("Force aspect ratio", &g_forceAspect169)) {
-        SetMkwForceAspect(g_forceAspect169);
-        RuntimeConfigFile::SetForceAspect169(g_forceAspect169);
+    if (ImGui::Checkbox("Force aspect ratio", &g_forceAspect)) {
+        SetMkwForceAspect(g_forceAspect);
+        RuntimeConfigFile::SetForceAspect(g_forceAspect);
     }
     ImGui::TextDisabled("Keep the current aspect ratio with black bars when the window has another shape.");
     ImGui::Separator();

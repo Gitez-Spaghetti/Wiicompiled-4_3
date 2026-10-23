@@ -1375,8 +1375,8 @@ int RuntimeMain(int argc, char** argv) {
         auroraConfig.logLevel = LOG_DEBUG;
         const bool configWidescreen = RuntimeConfigFile::WidescreenEnabled(true);
         const bool advertisedAspect169 = RuntimeConfigFile::AdvertisedAspectRatio169(configWidescreen);
-        const bool forceAspect169 = RuntimeConfigFile::ForceAspect169Enabled();
-        auroraConfig.windowWidth = (configWidescreen || forceAspect169) ? 854 : 640;
+        const bool forceAspect = RuntimeConfigFile::ForceAspectEnabled();
+        auroraConfig.windowWidth = (advertisedAspect169 || forceAspect) ? 854 : 640;
         auroraConfig.windowHeight = 480;
         auroraConfig.windowWidth = RuntimeConfigFile::WindowWidth(auroraConfig.windowWidth);
         auroraConfig.windowHeight = RuntimeConfigFile::WindowHeight(auroraConfig.windowHeight);
@@ -1394,7 +1394,7 @@ int RuntimeMain(int argc, char** argv) {
         auroraConfig.vsync = RuntimeConfigFile::Vsync();
         auroraConfig.desiredBackend = BACKEND_AUTO;
         const float resolutionMultiplier = RuntimeConfigFile::ResolutionMultiplier(1.0f);
-        ConfigureMkwDynamicAspect(advertisedAspect169, forceAspect169,
+        ConfigureMkwDynamicAspect(advertisedAspect169, forceAspect,
                                   auroraConfig.windowWidth, auroraConfig.windowHeight);
         VISetFrameBufferScale(resolutionMultiplier);
         // One table for both directions. RuntimeConfigFile::IsSupportedGraphicsApi
@@ -1463,15 +1463,16 @@ int RuntimeMain(int argc, char** argv) {
         settings_overlay::InitializeRuntimeSettings();
         RT_LOG(RT_TAG_CONFIG) << "video.advertised_aspect_ratio="
                   << (advertisedAspect169 ? "16:9" : "4:3")
-                  << " force_16_9=" << (forceAspect169 ? "true" : "false")
+                  << " force_aspect=" << (forceAspect ? "true" : "false")
                   << " SCGetAspectRatio=" << (advertisedAspect169 ? 1 : 0)
                   << " resolutionMultiplier=" << resolutionMultiplier
                   << " window=" << auroraInfo.windowSize.width << "x" << auroraInfo.windowSize.height
                   << " native=" << auroraInfo.windowSize.native_fb_width << "x"
                   << auroraInfo.windowSize.native_fb_height
-                  << " viewportPolicy=" << (forceAspect169 ? "16:9" : (configWidescreen ? "stretch" : "fit"))
+                  << " viewportPolicy=" << (forceAspect ? "fixed" : (advertisedAspect169 ? "stretch" : "fit"))
                   << " presentAspect="
-                  << (forceAspect169 ? "16:9" : (configWidescreen ? "surface (dynamic EGG canvas)" : "4:3"))
+                  << (forceAspect ? (advertisedAspect169 ? "16:9" : "4:3")
+                                  : (advertisedAspect169 ? "surface (dynamic EGG canvas)" : "4:3"))
                   << std::endl;
         g_auroraInitialized.store(true, std::memory_order_release);
         GxWorker::SetWaitCallback(ServiceGuestTimingDuringAuroraFrameWait);
