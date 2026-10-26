@@ -1391,6 +1391,7 @@ int RuntimeMain(int argc, char** argv) {
         auroraConfig.cachePath = auroraCachePath.c_str();
         auroraConfig.logCallback = &RuntimeAuroraLogCallback;
         auroraConfig.logLevel = LOG_DEBUG;
+        RuntimeConfigFile::MigrateLegacyForceAspect();
         const bool configWidescreen = RuntimeConfigFile::WidescreenEnabled(true);
         const bool forceAspect = RuntimeConfigFile::ForceAspectEnabled();
         auroraConfig.windowWidth = configWidescreen ? 854 : 640;

@@ -34,6 +34,7 @@
 struct RuntimeUserConfig {
     std::optional<bool> widescreen;
     std::optional<bool> forceAspect;
+    bool legacyForceAspect = false;
     std::optional<int32_t> windowPosX;
     std::optional<int32_t> windowPosY;
     std::optional<uint32_t> windowWidth;
@@ -407,6 +408,7 @@ inline RuntimeUserConfig ParseConfigDocument(const toml::value& document) {
     if (!config.forceAspect) {
         // Legacy key; it always forced a 16:9 game.
         config.forceAspect = FindConfigValue<bool>(document, "video", "force_16_9");
+        config.legacyForceAspect = config.forceAspect.has_value();
         if (config.forceAspect.value_or(false)) {
             config.widescreen = true;
         }
@@ -776,11 +778,21 @@ inline bool SetForceAspect(bool value) {
     return WriteSetting("video", "force_aspect", value ? "true" : "false");
 }
 
+// The in-memory value stays as booted; SCGetAspectRatio must not change mid-session.
 inline bool SetWidescreen(bool value) {
-    // Writing force_aspect stops a legacy force_16_9 from overriding this choice.
-    // The in-memory value stays as booted; SCGetAspectRatio must not change mid-session.
-    const bool wroteForce = SetForceAspect(ForceAspectEnabled());
-    return WriteSetting("video", "widescreen", value ? "true" : "false") && wroteForce;
+    return WriteSetting("video", "widescreen", value ? "true" : "false");
+}
+
+// Rewrites a legacy force_16_9 as force_aspect plus the widescreen it implied.
+inline void MigrateLegacyForceAspect() {
+    if (!Get().legacyForceAspect) {
+        return;
+    }
+    const bool force = ForceAspectEnabled();
+    if ((!force || WriteSetting("video", "widescreen", "true")) &&
+        WriteSetting("video", "force_aspect", force ? "true" : "false")) {
+        Mutable().legacyForceAspect = false;
+    }
 }
 
 inline bool WindowPosition(int32_t& x, int32_t& y) {
