@@ -33,7 +33,6 @@
 
 struct RuntimeUserConfig {
     std::optional<bool> widescreen;
-    std::optional<std::string> advertisedAspectRatio;
     std::optional<bool> forceAspect;
     std::optional<int32_t> windowPosX;
     std::optional<int32_t> windowPosY;
@@ -272,7 +271,6 @@ inline void EnsureConfigFile() {
               "# Set paths.dvd_root to an extracted Mario Kart Wii DATA directory.\n\n"
               "[video]\n"
               "widescreen = true\n"
-              "advertised_aspect_ratio = \"16:9\"\n"
               "force_aspect = false\n"
               "resolution_multiplier = 1.0\n"
               "frame_interpolation_fps = 0\n"
@@ -405,8 +403,14 @@ inline RuntimeUserConfig ParseConfigDocument(const toml::value& document) {
     }
 
     config.widescreen = FindConfigValue<bool>(document, "video", "widescreen");
-    config.advertisedAspectRatio = FindConfigValue<std::string>(document, "video", "advertised_aspect_ratio");
     config.forceAspect = FindConfigValue<bool>(document, "video", "force_aspect");
+    if (!config.forceAspect) {
+        // Legacy key; it always forced a 16:9 game.
+        config.forceAspect = FindConfigValue<bool>(document, "video", "force_16_9");
+        if (config.forceAspect.value_or(false)) {
+            config.widescreen = true;
+        }
+    }
     config.windowPosX = FindConfigInt(document, "video", "window_x");
     config.windowPosY = FindConfigInt(document, "video", "window_y");
     if (auto value = FindConfigUint(document, "video", "window_width"); value && *value != 0) {
@@ -763,23 +767,20 @@ inline bool WidescreenEnabled(bool fallback = false) {
     return Get().widescreen.value_or(fallback);
 }
 
-inline bool AdvertisedAspectRatio169(bool fallback = false) {
-    if (Get().advertisedAspectRatio) {
-        return *Get().advertisedAspectRatio != "4:3";
-    }
-    return WidescreenEnabled(fallback);
-}
-
-inline bool SetAdvertisedAspectRatio169(bool value) {
-    return WriteSetting("video", "advertised_aspect_ratio", value ? "\"16:9\"" : "\"4:3\"");
-}
-
 inline bool ForceAspectEnabled(bool fallback = false) {
     return Get().forceAspect.value_or(fallback);
 }
 
 inline bool SetForceAspect(bool value) {
+    Mutable().forceAspect = value;
     return WriteSetting("video", "force_aspect", value ? "true" : "false");
+}
+
+inline bool SetWidescreen(bool value) {
+    // Writing force_aspect stops a legacy force_16_9 from overriding this choice.
+    // The in-memory value stays as booted; SCGetAspectRatio must not change mid-session.
+    const bool wroteForce = SetForceAspect(ForceAspectEnabled());
+    return WriteSetting("video", "widescreen", value ? "true" : "false") && wroteForce;
 }
 
 inline bool WindowPosition(int32_t& x, int32_t& y) {

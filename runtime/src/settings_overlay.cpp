@@ -114,7 +114,7 @@ bool g_vsync = RuntimeConfigFile::Vsync();
 bool g_disableCopyFilter = RuntimeConfigFile::DisableCopyFilter(true);
 bool g_showFps = RuntimeConfigFile::ShowFps(true);
 bool g_forceAspect = RuntimeConfigFile::ForceAspectEnabled();
-bool g_advertisedAspect169 = RuntimeConfigFile::AdvertisedAspectRatio169(true);
+bool g_widescreen = RuntimeConfigFile::WidescreenEnabled(true);
 #if defined(__APPLE__)
 bool g_metalFxSpatialUpscaling = RuntimeConfigFile::MetalFxSpatialUpscaling(false);
 #endif
@@ -1081,15 +1081,14 @@ void DrawAudioSettings() {
 
 void DrawGraphicsSettings() {
     g_displayMode = static_cast<int>(aurora_get_display_mode());
-    const char* advertisedAspectLabel = g_advertisedAspect169 ? "16:9" : "4:3";
-    if (ImGui::BeginCombo("Advertised aspect ratio (restart required)", advertisedAspectLabel)) {
-        if (ImGui::Selectable("16:9", g_advertisedAspect169)) {
-            g_advertisedAspect169 = true;
-            RuntimeConfigFile::SetAdvertisedAspectRatio169(true);
+    if (ImGui::BeginCombo("Aspect ratio (restart required)", g_widescreen ? "16:9" : "4:3")) {
+        if (ImGui::Selectable("16:9", g_widescreen)) {
+            g_widescreen = true;
+            RuntimeConfigFile::SetWidescreen(true);
         }
-        if (ImGui::Selectable("4:3", !g_advertisedAspect169)) {
-            g_advertisedAspect169 = false;
-            RuntimeConfigFile::SetAdvertisedAspectRatio169(false);
+        if (ImGui::Selectable("4:3", !g_widescreen)) {
+            g_widescreen = false;
+            RuntimeConfigFile::SetWidescreen(false);
         }
         ImGui::EndCombo();
     }
